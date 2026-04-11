@@ -3,7 +3,54 @@ import requests
 
 # 1. CONFIGURACIÓN ÚNICA
 st.set_page_config(page_title="ND Hub", page_icon="🍀", layout="wide", initial_sidebar_state="expanded")
-
+# --- DICCIONARIO DE IDIOMAS CORREGIDO ---
+idiomas = {
+    "Español": {
+        "titulo": "🍀 Panel de Control Notre Dame",
+        "tab1": "Estadísticas", 
+        "tab2": "Jugadores", 
+        "tab3": "Compromisos",
+        "tab4": "Show Prep", 
+        "boton": "🔄 Actualizar ahora",
+        "resumen": "Resumen de Temporada",
+        "pase": "Yardas Pase", 
+        "tierra": "Yardas Tierra", 
+        "puntos": "Puntos Totales",
+        "desglose": "Desglose Completo",
+        "fuentes": "Fuentes Externas",
+        "trending": "Tendencias en X (Recruiting)"
+    },
+    "English": {
+        "titulo": "🍀 Notre Dame Command Center",
+        "tab1": "Stats", 
+        "tab2": "Roster", 
+        "tab3": "Commitments",
+        "tab4": "Show Prep",
+        "boton": "🔄 Refresh Now",
+        "resumen": "Season Summary",
+        "pase": "Passing Yards", 
+        "tierra": "Rushing Yards", 
+        "puntos": "Total Points",
+        "desglose": "Full Breakdown",
+        "fuentes": "External Sources",
+        "trending": "X Trends (Recruiting)"
+    },
+    "Français": {
+        "titulo": "🍀 Centre de Contrôle Notre Dame",
+        "tab1": "Statistiques", 
+        "tab2": "Effectif", 
+        "tab3": "Recrutement",
+        "tab4": "Show Prep",
+        "boton": "🔄 Actualiser maintenant",
+        "resumen": "Résumé de la Saison",
+        "pase": "Yards de Passe", 
+        "tierra": "Yards de Course", 
+        "puntos": "Points Totaux",
+        "desglose": "Répartition Complète",
+        "fuentes": "Sources Externes",
+        "trending": "Tendances sur X"
+    }
+}
 # --- DICCIONARIO DE TRADUCCIONES ---
 idiomas = {
     "Español": {
