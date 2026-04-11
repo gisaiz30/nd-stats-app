@@ -3,6 +3,9 @@ import requests
 # 1. Configuración de la página
 st.set_page_config(page_title="ND Stats Multi-Language", page_icon="🍀")
 
+# 1. Configuración de la página (La barra se queda abierta por defecto)
+st.set_page_config(page_title="ND Stats", page_icon="🍀", initial_sidebar_state="expanded")
+
 # --- DICCIONARIO DE TRADUCCIONES ---
 idiomas = {
     "Español": {
@@ -12,8 +15,7 @@ idiomas = {
         "pase": "Yardas Pase",
         "tierra": "Yardas Tierra",
         "puntos": "Puntos Totales",
-        "desglose": "Desglose Completo",
-        "error": "Error al conectar con ESPN"
+        "desglose": "Desglose Completo"
     },
     "English": {
         "titulo": "🍀 Notre Dame Statistics",
@@ -22,8 +24,7 @@ idiomas = {
         "pase": "Passing Yards",
         "tierra": "Rushing Yards",
         "puntos": "Total Points",
-        "desglose": "Full Breakdown",
-        "error": "Error connecting to ESPN"
+        "desglose": "Full Breakdown"
     },
     "Français": {
         "titulo": "🍀 Statistiques de Notre Dame",
@@ -32,18 +33,56 @@ idiomas = {
         "pase": "Yards de Passe",
         "tierra": "Yards de Course",
         "puntos": "Points Totaux",
-        "desglose": "Répartition Complète",
-        "error": "Erreur de connexion à ESPN"
+        "desglose": "Répartition Complète"
     }
 }
 
-# 2. Selector de Idioma en la barra lateral
-st.sidebar.title("Configuración / Settings")
-seleccion = st.sidebar.selectbox("Selecciona tu idioma / Select language", ["Español", "English", "Français"])
-t = idiomas[seleccion] # 't' de traducciones
+# 2. Selector en la barra lateral
+st.sidebar.title("Configuración")
+seleccion = st.sidebar.selectbox("Idioma / Language", list(idiomas.keys()))
+t = idiomas[seleccion]  # Esta 't' es la que hace la magia
 
-# Estilo visual
-st.markdown("""<style>.stButton>button { background-color: #0C2340; color: #C99700; border-radius: 20px; }</style>""", unsafe_allow_html=True)
+# --- APLICAR TRADUCCIONES A LA APP ---
+
+st.title(t["titulo"]) # <--- Aquí usamos t["titulo"] en lugar de texto fijo
+
+if st.button(t["boton"]):
+    st.cache_data.clear()
+    st.rerun()
+
+@st.cache_data(ttl=600)
+def obtener_datos():
+    url = "https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics"
+    return requests.get(url).json()
+
+datos = obtener_datos()
+
+if datos:
+    categorias = datos.get('results', {}).get('stats', {}).get('categories', [])
+    st.subheader(t["resumen"]) # <--- Traducción aplicada
+    
+    col1, col2, col3 = st.columns(3)
+    
+    for cat in categorias:
+        if cat['name'] == 'passing':
+            val = cat['stats'][1]['displayValue'] # yardas pase
+            col1.metric(t["pase"], val) # <--- Traducción aplicada
+            
+        if cat['name'] == 'rushing':
+            val = cat['stats'][1]['displayValue'] # yardas tierra
+            col2.metric(t["tierra"], val) # <--- Traducción aplicada
+            
+        if cat['name'] == 'scoring':
+            val = cat['stats'][0]['displayValue'] # puntos
+            col3.metric(t["puntos"], val) # <--- Traducción aplicada
+
+    st.divider()
+    st.write(f"### {t['desglose']}") # <--- Traducción aplicada
+    
+    for cat in categorias:
+        with st.expander(f"📊 {cat['displayName']}"):
+            for s in cat['stats']:
+                st.write(f"**{s['displayName']}:** {s['displayValue']}")
 # 1. Configuración de la página
 st.set_page_config(page_title="ND Stats - ESPN", page_icon="🍀")
 st.title("🍀 Estadísticas Notre Dame (ESPN)")
