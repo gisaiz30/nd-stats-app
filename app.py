@@ -86,7 +86,12 @@ idiomas = {
 st.sidebar.title("Configuración")
 seleccion = st.sidebar.selectbox("Idioma / Language", list(idiomas.keys()))
 t = idiomas[seleccion]
-
+# --- AQUÍ VAN LOS BOTONES QUE TE DABAN ERROR ---
+st.sidebar.divider()
+st.sidebar.subheader(t["fuentes"])
+st.sidebar.link_button("📊 Team Rankings (ND)", "https://www.teamrankings.com/ncf/team/notre-dame-fighting-irish/stats")
+st.sidebar.link_button("📈 CFB Stats (ND)", "http://www.cfbstats.com/2025/team/513/index.html")
+# -----------------------------------------------
 st.title(t["titulo"])
 
 # Botón de actualizar
