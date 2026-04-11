@@ -57,7 +57,7 @@ idiomas = {
         "trending": "Tendances sur X"
     }
 }
-# --- DICCIONARIO DE IDIOMAS COMPLETO (ACTUALIZADO CON TAB 4) ---
+# --- DICCIONARIO DE IDIOMAS COMPLETO ---
 idiomas = {
     "Español": {
         "titulo": "🍀 Panel de Control Notre Dame",
