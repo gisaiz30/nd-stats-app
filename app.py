@@ -91,38 +91,7 @@ if st.button('🔄 Actualizar Estadísticas ahora'):
     st.cache_data.clear() # Esto borra la memoria vieja
     st.rerun()           # Esto reinicia la app para buscar datos nuevos
 # ------------------------
-# --- TAB 2: JUGADORES (ROSTER) ---
-with tab2:
-    # Usamos la API de ESPN para el roster actual
-    roster_data = fetch_data("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/roster")
-    if roster_data:
-        for group in roster_data.get('athletes', []):
-            st.write(f"### {group['position']}")
-            for player in group['items']:
-                col_p1, col_p2 = st.columns([1, 4])
-                with col_p1:
-                    st.image(player.get('headshot', {}).get('href', 'https://via.placeholder.com/50'), width=70)
-                with col_p2:
-                    st.write(f"**{player['fullName']}** (#{player.get('jersey', 'N/A')})")
-                    st.caption(f"{player.get('experience', {}).get('displayValue', '')} | {player.get('displayHeight', '')}, {player.get('displayWeight', '')}")
 
-# --- TAB 3: COMPROMISOS (RECRUITING) ---
-with tab3:
-    st.write("### Reclutamiento Clase 2026")
-    # Para recruiting usamos CollegeFootballData (necesitarías tu API KEY si fuera esa, 
-    # pero aquí simulamos la visualización para que veas cómo queda)
-    st.info("Aquí aparecerán los nuevos talentos que han firmado con Notre Dame.")
-    
-    # Ejemplo de cómo se vería una lista de reclutas
-    reclutas_ejemplo = [
-        {"nombre": "Noah Grubbs", "pos": "QB", "estrellas": "⭐⭐⭐⭐", "ciudad": "Lake Mary, FL"},
-        {"nombre": "Deuce Knight", "pos": "QB", "estrellas": "⭐⭐⭐⭐⭐", "ciudad": "Lucedale, MS"}
-    ]
-    
-    for r in reclutas_ejemplo:
-        st.success(f"📌 {r['nombre']} - {r['pos']} | {t['estrellas']}: {r['estrellas']}")
-        st.write(f"📍 {r['ciudad']}")
-        st.divider()
 # 2. Función para traer datos de la API de ESPN
 @st.cache_data(ttl=600)
 def obtener_datos_espn():
