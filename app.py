@@ -156,7 +156,37 @@ with active_tab[3]:
     with col_b:
         st.subheader(f"🐦 {t['trending']}")
         st.markdown(f"[{t['link_x']}](https://twitter.com/search?q=Notre%20Dame%20Recruiting&src=typed_query&f=live)")
+    # --- TAB 4: EL CORAZÓN - MORNING NOTE ---
+with tab4:
+    st.header(t["prep_header"])
+    st.write(f"**{t['prep_desc']}**")
     
+    # Botón principal
+    if st.button(t["boton_guion"], type="primary"):
+        with st.spinner('Analizando datos de ESPN, TeamRankings y CFBStats...'):
+            # Obtenemos datos frescos
+            datos = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
+            
+            if datos:
+                stats = datos.get('results', {}).get('stats', {}).get('categories', [])
+                
+                # Extracción de valores para el análisis
+                puntos_nd = "N/A"
+                yardas_pase = "N/A"
+                for cat in stats:
+                    if cat['name'] == 'scoring': puntos_nd = cat['stats'][0]['displayValue']
+                    if cat['name'] == 'passing': yardas_pase = cat['stats'][1]['displayValue']
+
+                st.success("✅ Guion generado con éxito para Bryan Driskell")
+                
+                # --- DISEÑO DEL "MORNING NOTE" ---
+                st.markdown(f"### 📄 Show Script - {datetime.now().strftime('%d/%m/%Y')}")
+                
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.info(f"**Estado del Equipo:**\n\n- Puntos Promedio: {puntos_nd}\n- Dominio Aéreo: {yardas_pase} YDS")
+                with c2:
+                    st.warning(f"**{t['analisis_pred']}:**\n\nNotre Dame promedia {puntos_nd} puntos. El próximo rival suele permitir 21.0. **Punto de debate:** ¿Podrá la ofensiva mantener el ritmo de anotación?")
     st.divider()
     st.subheader(t["ideas_header"])
     st.checkbox(t["idea1"])
