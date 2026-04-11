@@ -1,14 +1,8 @@
 import streamlit as st
 import requests
-
 # 1. Configuración de la página
-st.set_page_config(page_title="ND Stats - ESPN", page_icon="🍀")
-st.title("🍀 Estadísticas Notre Dame (ESPN)")
-# --- AQUÍ VA EL BOTÓN ---
-if st.button('🔄 Actualizar Estadísticas ahora'):
-    st.cache_data.clear() # Esto borra la memoria vieja
-    st.rerun()           # Esto reinicia la app para buscar datos nuevos
-# ------------------------
+st.set_page_config(page_title="ND Stats Multi-Language", page_icon="🍀")
+
 # --- DICCIONARIO DE TRADUCCIONES ---
 idiomas = {
     "Español": {
@@ -42,6 +36,23 @@ idiomas = {
         "error": "Erreur de connexion à ESPN"
     }
 }
+
+# 2. Selector de Idioma en la barra lateral
+st.sidebar.title("Configuración / Settings")
+seleccion = st.sidebar.selectbox("Selecciona tu idioma / Select language", ["Español", "English", "Français"])
+t = idiomas[seleccion] # 't' de traducciones
+
+# Estilo visual
+st.markdown("""<style>.stButton>button { background-color: #0C2340; color: #C99700; border-radius: 20px; }</style>""", unsafe_allow_html=True)
+# 1. Configuración de la página
+st.set_page_config(page_title="ND Stats - ESPN", page_icon="🍀")
+st.title("🍀 Estadísticas Notre Dame (ESPN)")
+# --- AQUÍ VA EL BOTÓN ---
+if st.button('🔄 Actualizar Estadísticas ahora'):
+    st.cache_data.clear() # Esto borra la memoria vieja
+    st.rerun()           # Esto reinicia la app para buscar datos nuevos
+# ------------------------
+
 # 2. Función para traer datos de la API de ESPN
 @st.cache_data(ttl=600)
 def obtener_datos_espn():
