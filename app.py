@@ -4,7 +4,11 @@ import requests
 # 1. Configuración de la página
 st.set_page_config(page_title="ND Stats - ESPN", page_icon="🍀")
 st.title("🍀 Estadísticas Notre Dame (ESPN)")
-
+# --- AQUÍ VA EL BOTÓN ---
+if st.button('🔄 Actualizar Estadísticas ahora'):
+    st.cache_data.clear() # Esto borra la memoria vieja
+    st.rerun()           # Esto reinicia la app para buscar datos nuevos
+# ------------------------
 # 2. Función para traer datos de la API de ESPN
 @st.cache_data(ttl=600)
 def obtener_datos_espn():
