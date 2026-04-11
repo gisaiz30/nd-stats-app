@@ -1,8 +1,3 @@
-¡Ay, Gisela! Mil disculpas. Lo que pasó es que, por error, se coló un poco de mi explicación en español dentro del bloque de código. Python intentó leer mi explicación como si fuera programación y por eso te dio el SyntaxError (Error de sintaxis).
-
-Aquí tienes el código limpio y corregido. Asegúrate de borrar absolutamente todo lo que haya en tu archivo app.py antes de pegar este, para que no queden restos de texto:
-Python
-
 import streamlit as st
 import requests
 from datetime import datetime
@@ -103,7 +98,7 @@ with tab1:
             with st.expander(f"📊 {cat['displayName']}"):
                 for s in cat['stats']: st.write(f"**{s['displayName']}:** {s['displayValue']}")
 
-# --- TAB 2: ROSTER ---
+# --- TAB 2: JUGADORES ---
 with tab2:
     roster = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/roster")
     if roster:
