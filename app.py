@@ -1,50 +1,61 @@
-# Tu llave de la API (Asegúrate de que sea la que te enviaron al correo)
-# Si no tienes una, regístrate en https://collegefootballdata.com/key
-api_key = "+4QJIvbSYN9xIB8BJOVwqmgnEPcR7DfhlNZzssapv5jQkYba5zXfXUMYo8lPYtLy" 
-headers = {"Authorization": f"Bearer {api_key}"}
+import streamlit as st
+import requests
 
-def obtener_datos():
-    # Probamos con el año 2025 que es el más reciente con datos completos
-    url = "https://api.collegefootballdata.com/teams/stats?year=2025&team=Notre%20Dame"
-    response = requests.get(url, headers=headers)
-    
-    if response.status_code == 200:
+# 1. Configuración de la página
+st.set_page_config(page_title="ND Stats - ESPN Source", page_icon="🍀")
+st.title("🍀 Estadísticas Notre Dame (Vía ESPN)")
+
+# 2. Función para traer datos de ESPN (ID 87 es Notre Dame)
+@st.cache_data(ttl=3600) # Esto hace que la app sea rápida y no sature a ESPN
+def obtener_datos_espn():
+    # Esta es la URL de la API interna de ESPN para el equipo 87
+    url = "https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics"
+    try:
+        response = requests.get(url)
         return response.json()
-    else:
-        st.error(f"Error de la API: Código {response.status_code}. Revisa tu API Key.")
+    except Exception as e:
+        st.error(f"Error de conexión: {e}")
         return None
 
-datos = obtener_datos()
+# 3. Ejecución
+datos = obtener_datos_espn()
 
 if datos:
-    # Mostramos el nombre del equipo y el año
-    st.success(f"Datos cargados para {datos[0]['team']} (Temporada {datos[0]['year']})")
+    # Extraemos las estadísticas principales
+    # ESPN las organiza por grupos (defensive, offensive, etc.)
+    st.subheader("Resumen de Temporada")
     
-    stats = datos[0]['stats']
-    
-    # Organizamos en columnas atractivas
+    # Buscamos algunas estadísticas clave para mostrar en grande
     col1, col2, col3 = st.columns(3)
     
-    # Diccionario para traducir o filtrar categorías importantes
-    importantes = {
-        'offenseScore': "Puntos Ofensivos",
-        'defenseScore': "Puntos Defensivos",
-        'games': "Partidos Jugados"
-    }
-
-    for s in stats:
-        cat = s['category']
-        val = s['stat']
+    # Navegamos por el JSON de ESPN
+    categorias = datos.get('results', {}).get('stats', [])
+    
+    for grupo in categorias:
+        if grupo['name'] == 'passing':
+            # Ejemplo: Total de yardas por pase
+            total_yards = grupo['stats'][1] # 'netPassingYards'
+            col1.metric("Yardas Pase", total_yards['displayValue'])
         
-        if cat == 'offenseScore':
-            col1.metric("Puntos Ofensivos", val)
-        elif cat == 'defenseScore':
-            col2.metric("Puntos Defensivos", val)
-        elif cat == 'games':
-            col3.metric("Partidos", val)
+        if grupo['name'] == 'rushing':
+            # Ejemplo: Total de yardas por tierra
+            rush_yards = grupo['stats'][1] # 'rushingYards'
+            col2.metric("Yardas Tierra", rush_yards['displayValue'])
 
-    # Mostrar todas las estadísticas en una tabla bonita
-    with st.expander("Ver todas las estadísticas detalladas"):
-        st.table(stats)
+        if grupo['name'] == 'scoring':
+            # Puntos totales
+            puntos = grupo['stats'][0] # 'totalPoints'
+            col3.metric("Puntos Totales", puntos['displayValue'])
+
+    # 4. Tabla Detallada
+    with st.expander("Ver todas las estadísticas detalladas (Modo Tabla)"):
+        for grupo in categorias:
+            st.write(f"**Categoría: {grupo['displayName']}**")
+            # Creamos una lista de diccionarios para mostrarlo bonito
+            tabla_datos = [{"Estadística": s['displayName'], "Valor": s['displayValue']} for s in grupo['stats']]
+            st.table(tabla_datos)
+
 else:
-    st.warning("No hay datos disponibles para mostrar en este momento.")
+    st.warning("No se pudieron cargar los datos de ESPN. Intenta refrescar la página.")
+
+st.info("Nota: Los datos se actualizan automáticamente desde ESPN cada vez que entras.")
