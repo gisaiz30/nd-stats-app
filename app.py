@@ -57,7 +57,60 @@ idiomas = {
         "trending": "Tendances sur X"
     }
 }
-
+# --- DICCIONARIO DE IDIOMAS COMPLETO (ACTUALIZADO CON TAB 4) ---
+idiomas = {
+    "Español": {
+        "titulo": "🍀 Panel de Control Notre Dame",
+        "tab1": "Estadísticas", "tab2": "Jugadores", "tab3": "Compromisos", "tab4": "Show Prep",
+        "boton": "🔄 Actualizar ahora", "resumen": "Resumen de Temporada",
+        "pase": "Yardas Pase", "tierra": "Yardas Tierra", "puntos": "Puntos Totales",
+        "desglose": "Desglose Completo", "fuentes": "Fuentes Externas", "trending": "Tendencias en X",
+        "prep_header": "🎙️ Irish Breakdown Show Prep",
+        "prep_desc": "Herramientas para eliminar las tareas pesadas (chores) de Bryan Driskell.",
+        "quick_analysis": "📌 Análisis Rápido",
+        "ideas_header": "💡 Ideas para el segmento 'Buy / Sell / Hold'",
+        "idea1": "¿Es la defensa de ND la mejor de la era Freeman?",
+        "idea2": "Proyección: Impacto de los nuevos compromisos en el ranking nacional.",
+        "idea3": "Análisis: Rendimiento en terceras oportunidades vs la media nacional.",
+        "link_team": "Abrir comparativa en TeamRankings",
+        "link_cfb": "Consultar históricos en CFBStats",
+        "link_x": "Ver noticias de reclutas en X (Tiempo Real)"
+    },
+    "English": {
+        "titulo": "🍀 Notre Dame Command Center",
+        "tab1": "Stats", "tab2": "Roster", "tab3": "Commitments", "tab4": "Show Prep",
+        "boton": "🔄 Refresh Now", "resumen": "Season Summary",
+        "pase": "Passing Yards", "tierra": "Rushing Yards", "puntos": "Total Points",
+        "desglose": "Full Breakdown", "fuentes": "External Sources", "trending": "X Trends",
+        "prep_header": "🎙️ Irish Breakdown Show Prep",
+        "prep_desc": "Tools to eliminate Bryan Driskell's heavy lifting (chores).",
+        "quick_analysis": "📌 Quick Analysis",
+        "ideas_header": "💡 Ideas for 'Buy / Sell / Hold' Segment",
+        "idea1": "Is ND's defense the best of the Freeman era?",
+        "idea2": "Projection: Impact of new commitments on national rankings.",
+        "idea3": "Analysis: Third-down performance vs national average.",
+        "link_team": "Open TeamRankings comparison",
+        "link_cfb": "Check historical data on CFBStats",
+        "link_x": "View recruit news on X (Real Time)"
+    },
+    "Français": {
+        "titulo": "🍀 Centre de Contrôle Notre Dame",
+        "tab1": "Statistiques", "tab2": "Effectif", "tab3": "Recrutement", "tab4": "Show Prep",
+        "boton": "🔄 Actualiser maintenant", "resumen": "Résumé de la Saison",
+        "pase": "Yards de Passe", "tierra": "Yards de Course", "puntos": "Points Totaux",
+        "desglose": "Répartition Complète", "fuentes": "Sources Externes", "trending": "Tendances sur X",
+        "prep_header": "🎙️ Irish Breakdown Show Prep",
+        "prep_desc": "Outils pour éliminer les corvées de Bryan Driskell.",
+        "quick_analysis": "📌 Analyse Rapide",
+        "ideas_header": "💡 Idées pour le segment 'Buy / Sell / Hold'",
+        "idea1": "La défense de ND est-elle la meilleure de l'ère Freeman?",
+        "idea2": "Projection: Impact des nouveaux engagements sur le classement national.",
+        "idea3": "Analyse: Performance sur les troisièmes tentatives vs moyenne nationale.",
+        "link_team": "Ouvrir la comparaison TeamRankings",
+        "link_cfb": "Consulter les historiques sur CFBStats",
+        "link_x": "Voir les nouvelles des recrues sur X"
+    }
+}
 # 2. CONFIGURACIÓN DEL SIDEBAR (BARRA LATERAL)
 st.sidebar.title("Configuración")
 seleccion = st.sidebar.selectbox("Idioma / Language", list(idiomas.keys()))
