@@ -3,82 +3,34 @@ import requests
 
 # 1. CONFIGURACIÓN ÚNICA
 st.set_page_config(page_title="ND Hub", page_icon="🍀", layout="wide", initial_sidebar_state="expanded")
-# --- DICCIONARIO DE IDIOMAS CORREGIDO ---
+# --- DICCIONARIO DE IDIOMAS (CON TODAS LAS LLAVES) ---
 idiomas = {
     "Español": {
         "titulo": "🍀 Panel de Control Notre Dame",
-        "tab1": "Estadísticas", 
-        "tab2": "Jugadores", 
-        "tab3": "Compromisos",
-        "tab4": "Show Prep", 
-        "boton": "🔄 Actualizar ahora",
-        "resumen": "Resumen de Temporada",
-        "pase": "Yardas Pase", 
-        "tierra": "Yardas Tierra", 
-        "puntos": "Puntos Totales",
-        "desglose": "Desglose Completo",
-        "fuentes": "Fuentes Externas",
-        "trending": "Tendencias en X (Recruiting)"
-    },
-    "English": {
-        "titulo": "🍀 Notre Dame Command Center",
-        "tab1": "Stats", 
-        "tab2": "Roster", 
-        "tab3": "Commitments",
-        "tab4": "Show Prep",
-        "boton": "🔄 Refresh Now",
-        "resumen": "Season Summary",
-        "pase": "Passing Yards", 
-        "tierra": "Rushing Yards", 
-        "puntos": "Total Points",
-        "desglose": "Full Breakdown",
-        "fuentes": "External Sources",
-        "trending": "X Trends (Recruiting)"
-    },
-    "Français": {
-        "titulo": "🍀 Centre de Contrôle Notre Dame",
-        "tab1": "Statistiques", 
-        "tab2": "Effectif", 
-        "tab3": "Recrutement",
-        "tab4": "Show Prep",
-        "boton": "🔄 Actualiser maintenant",
-        "resumen": "Résumé de la Saison",
-        "pase": "Yards de Passe", 
-        "tierra": "Yards de Course", 
-        "puntos": "Points Totaux",
-        "desglose": "Répartition Complète",
-        "fuentes": "Sources Externes",
-        "trending": "Tendances sur X"
-    }
-}
-# --- DICCIONARIO DE TRADUCCIONES ---
-idiomas = {
-    "Español": {
-        "titulo": "🍀 Panel de Control Notre Dame",
-        "tab1": "Estadísticas", "tab2": "Jugadores", "tab3": "Compromisos",
-        "boton": "🔄 Actualizar ahora",
-        "resumen": "Resumen de Temporada",
+        "tab1": "Estadísticas", "tab2": "Jugadores", "tab3": "Compromisos", "tab4": "Show Prep",
+        "boton": "🔄 Actualizar ahora", "resumen": "Resumen de Temporada",
         "pase": "Yardas Pase", "tierra": "Yardas Tierra", "puntos": "Puntos Totales",
-        "desglose": "Desglose Completo"
-        
+        "desglose": "Desglose Completo", 
+        "fuentes": "Fuentes Externas", # <--- ESTA ES LA QUE FALTA
+        "trending": "Tendencias en X"  # <--- Y ESTA TAMBIÉN
     },
     "English": {
         "titulo": "🍀 Notre Dame Command Center",
-        "tab1": "Stats", "tab2": "Roster", "tab3": "Commitments",
-        "boton": "🔄 Refresh Now",
-        "resumen": "Season Summary",
+        "tab1": "Stats", "tab2": "Roster", "tab3": "Commitments", "tab4": "Show Prep",
+        "boton": "🔄 Refresh Now", "resumen": "Season Summary",
         "pase": "Passing Yards", "tierra": "Rushing Yards", "puntos": "Total Points",
-        "desglose": "Full Breakdown"
-       
+        "desglose": "Full Breakdown", 
+        "fuentes": "External Sources", # <--- ESTA ES LA QUE FALTA
+        "trending": "X Trends"         # <--- Y ESTA TAMBIÉN
     },
     "Français": {
         "titulo": "🍀 Centre de Contrôle Notre Dame",
-        "tab1": "Statistiques", "tab2": "Effectif", "tab3": "Recrutement",
-        "boton": "🔄 Actualiser maintenant",
-        "resumen": "Résumé de la Saison",
+        "tab1": "Statistiques", "tab2": "Effectif", "tab3": "Recrutement", "tab4": "Show Prep",
+        "boton": "🔄 Actualiser maintenant", "resumen": "Résumé de la Saison",
         "pase": "Yards de Passe", "tierra": "Yards de Course", "puntos": "Points Totaux",
-        "desglose": "Répartition Complète"
-        
+        "desglose": "Répartition Complète", 
+        "fuentes": "Sources Externes", # <--- ESTA ES LA QUE FALTA
+        "trending": "Tendances sur X"  # <--- Y ESTA TAMBIÉN
     }
 }
 
@@ -86,12 +38,7 @@ idiomas = {
 st.sidebar.title("Configuración")
 seleccion = st.sidebar.selectbox("Idioma / Language", list(idiomas.keys()))
 t = idiomas[seleccion]
-# --- AQUÍ VAN LOS BOTONES QUE TE DABAN ERROR ---
-st.sidebar.divider()
-st.sidebar.subheader(t["fuentes"])
-st.sidebar.link_button("📊 Team Rankings (ND)", "https://www.teamrankings.com/ncf/stats/")
-st.sidebar.link_button("📈 CFB Stats (ND)", "https://cfbstats.com/")
-# -----------------------------------------------
+
 st.title(t["titulo"])
 
 # Botón de actualizar
