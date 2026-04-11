@@ -13,6 +13,10 @@ idiomas = {
         "resumen": "Resumen de Temporada",
         "pase": "Yardas Pase", "tierra": "Yardas Tierra", "puntos": "Puntos Totales",
         "desglose": "Desglose Completo"
+        # Añade esto dentro de cada idioma en tu diccionario
+"tab4": "Show Prep", 
+"fuentes": "Fuentes Externas",
+"trending": "Tendencias en X (Recruiting)"
     },
     "English": {
         "titulo": "🍀 Notre Dame Command Center",
@@ -21,6 +25,10 @@ idiomas = {
         "resumen": "Season Summary",
         "pase": "Passing Yards", "tierra": "Rushing Yards", "puntos": "Total Points",
         "desglose": "Full Breakdown"
+        # Añade esto dentro de cada idioma en tu diccionario
+"tab4": "Show Prep", 
+"fuentes": "Fuentes Externas",
+"trending": "Tendencias en X (Recruiting)"
     },
     "Français": {
         "titulo": "🍀 Centre de Contrôle Notre Dame",
@@ -29,6 +37,10 @@ idiomas = {
         "resumen": "Résumé de la Saison",
         "pase": "Yards de Passe", "tierra": "Yards de Course", "puntos": "Points Totaux",
         "desglose": "Répartition Complète"
+        # Añade esto dentro de cada idioma en tu diccionario
+"tab4": "Show Prep", 
+"fuentes": "Fuentes Externas",
+"trending": "Tendencias en X (Recruiting)"
     }
 }
 
