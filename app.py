@@ -2,60 +2,62 @@ import streamlit as st
 import requests
 
 # 1. Configuración de la página
-st.set_page_config(page_title="ND Stats - ESPN Source", page_icon="🍀")
-st.title("🍀 Estadísticas Notre Dame (Vía ESPN)")
+st.set_page_config(page_title="ND Stats - ESPN", page_icon="🍀")
+st.title("🍀 Estadísticas Notre Dame (ESPN)")
 
-# 2. Función para traer datos de ESPN (ID 87 es Notre Dame)
-@st.cache_data(ttl=3600) # Esto hace que la app sea rápida y no sature a ESPN
+# 2. Función para traer datos de la API de ESPN
+@st.cache_data(ttl=600)
 def obtener_datos_espn():
-    # Esta es la URL de la API interna de ESPN para el equipo 87
+    # Usamos la URL de estadísticas de la temporada actual
     url = "https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics"
     try:
         response = requests.get(url)
         return response.json()
-    except Exception as e:
-        st.error(f"Error de conexión: {e}")
+    except:
         return None
 
-# 3. Ejecución
 datos = obtener_datos_espn()
 
-if datos:
-    # Extraemos las estadísticas principales
-    # ESPN las organiza por grupos (defensive, offensive, etc.)
-    st.subheader("Resumen de Temporada")
-    
-    # Buscamos algunas estadísticas clave para mostrar en grande
-    col1, col2, col3 = st.columns(3)
-    
-    # Navegamos por el JSON de ESPN
-    categorias = datos.get('results', {}).get('stats', [])
-    
-    for grupo in categorias:
-        if grupo['name'] == 'passing':
-            # Ejemplo: Total de yardas por pase
-            total_yards = grupo['stats'][1] # 'netPassingYards'
-            col1.metric("Yardas Pase", total_yards['displayValue'])
+# 3. Procesar y mostrar los datos
+if datos and 'results' in datos:
+    # ESPN guarda las estadísticas dentro de 'results' -> 'stats' -> 'categories'
+    # Vamos a extraer las categorías de forma segura
+    stats_data = datos.get('results', {})
+    categorias = stats_data.get('stats', {}).get('categories', [])
+
+    if categorias:
+        st.subheader(f"Temporada {stats_data.get('season', 'Actual')}")
         
-        if grupo['name'] == 'rushing':
-            # Ejemplo: Total de yardas por tierra
-            rush_yards = grupo['stats'][1] # 'rushingYards'
-            col2.metric("Yardas Tierra", rush_yards['displayValue'])
+        # Creamos las métricas principales arriba
+        col1, col2, col3 = st.columns(3)
+        
+        for cat in categorias:
+            # Buscamos la categoría de pases
+            if cat['name'] == 'passing':
+                for s in cat['stats']:
+                    if s['name'] == 'passingYards':
+                        col1.metric("Yardas Pase", s['displayValue'])
+            
+            # Buscamos la categoría de carrera
+            if cat['name'] == 'rushing':
+                for s in cat['stats']:
+                    if s['name'] == 'rushingYards':
+                        col2.metric("Yardas Tierra", s['displayValue'])
+            
+            # Buscamos la categoría de anotación
+            if cat['name'] == 'scoring':
+                for s in cat['stats']:
+                    if s['name'] == 'totalPoints':
+                        col3.metric("Puntos Totales", s['displayValue'])
 
-        if grupo['name'] == 'scoring':
-            # Puntos totales
-            puntos = grupo['stats'][0] # 'totalPoints'
-            col3.metric("Puntos Totales", puntos['displayValue'])
-
-    # 4. Tabla Detallada
-    with st.expander("Ver todas las estadísticas detalladas (Modo Tabla)"):
-        for grupo in categorias:
-            st.write(f"**Categoría: {grupo['displayName']}**")
-            # Creamos una lista de diccionarios para mostrarlo bonito
-            tabla_datos = [{"Estadística": s['displayName'], "Valor": s['displayValue']} for s in grupo['stats']]
-            st.table(tabla_datos)
-
+        # Tabla completa para ver todo
+        st.divider()
+        st.write("### Desglose Completo")
+        for cat in categorias:
+            with st.expander(f"📊 {cat['displayName']}"):
+                for s in cat['stats']:
+                    st.write(f"**{s['displayName']}:** {s['displayValue']}")
+    else:
+        st.warning("No se encontraron categorías de estadísticas en este momento.")
 else:
-    st.warning("No se pudieron cargar los datos de ESPN. Intenta refrescar la página.")
-
-st.info("Nota: Los datos se actualizan automáticamente desde ESPN cada vez que entras.")
+    st.error("No se pudo conectar con ESPN o los datos no están disponibles.")
