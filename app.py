@@ -9,6 +9,39 @@ if st.button('🔄 Actualizar Estadísticas ahora'):
     st.cache_data.clear() # Esto borra la memoria vieja
     st.rerun()           # Esto reinicia la app para buscar datos nuevos
 # ------------------------
+# --- DICCIONARIO DE TRADUCCIONES ---
+idiomas = {
+    "Español": {
+        "titulo": "🍀 Estadísticas Notre Dame",
+        "boton": "🔄 Actualizar ahora",
+        "resumen": "Resumen de Temporada",
+        "pase": "Yardas Pase",
+        "tierra": "Yardas Tierra",
+        "puntos": "Puntos Totales",
+        "desglose": "Desglose Completo",
+        "error": "Error al conectar con ESPN"
+    },
+    "English": {
+        "titulo": "🍀 Notre Dame Statistics",
+        "boton": "🔄 Refresh Now",
+        "resumen": "Season Summary",
+        "pase": "Passing Yards",
+        "tierra": "Rushing Yards",
+        "puntos": "Total Points",
+        "desglose": "Full Breakdown",
+        "error": "Error connecting to ESPN"
+    },
+    "Français": {
+        "titulo": "🍀 Statistiques de Notre Dame",
+        "boton": "🔄 Actualiser maintenant",
+        "resumen": "Résumé de la Saison",
+        "pase": "Yards de Passe",
+        "tierra": "Yards de Course",
+        "puntos": "Points Totaux",
+        "desglose": "Répartition Complète",
+        "error": "Erreur de connexion à ESPN"
+    }
+}
 # 2. Función para traer datos de la API de ESPN
 @st.cache_data(ttl=600)
 def obtener_datos_espn():
