@@ -1,8 +1,6 @@
-Ese NameError en la línea 160 ocurre porque intentas usar tab4 dentro de un bloque with, pero la variable no ha sido creada arriba. Esto pasa si en la línea donde defines las pestañas (normalmente st.tabs) solo pusiste 3 nombres en lugar de 4.
+¡Ay, Gisela! Mil disculpas. Lo que pasó es que, por error, se coló un poco de mi explicación en español dentro del bloque de código. Python intentó leer mi explicación como si fuera programación y por eso te dio el SyntaxError (Error de sintaxis).
 
-Para que el Morning Note funcione y el error desaparezca, aquí tienes el código totalmente integrado. He incluido las traducciones completas, la lógica de las 4 pestañas y el generador automático del guion para Bryan.
-
-Borra todo tu app.py y pega este bloque único:
+Aquí tienes el código limpio y corregido. Asegúrate de borrar absolutamente todo lo que haya en tu archivo app.py antes de pegar este, para que no queden restos de texto:
 Python
 
 import streamlit as st
@@ -79,7 +77,7 @@ if st.button(t["boton"]):
     st.cache_data.clear()
     st.rerun()
 
-# --- AQUÍ SE DEFINEN LAS 4 PESTAÑAS (Esto evita el NameError) ---
+# --- DEFINICIÓN DE LAS 4 PESTAÑAS ---
 tab1, tab2, tab3, tab4 = st.tabs([t["tab1"], t["tab2"], t["tab3"], t["tab4"]])
 
 # --- TAB 1: ESTADÍSTICAS ---
@@ -122,7 +120,7 @@ with tab3:
     commits = [{"name": "Noah Grubbs", "pos": "QB", "stars": "⭐⭐⭐⭐"}, {"name": "Jameson Knight", "pos": "WR", "stars": "⭐⭐⭐⭐⭐"}]
     for c in commits: st.success(f"✅ {c['name']} ({c['pos']}) - {c['stars']}")
 
-# --- TAB 4: MORNING NOTE (EL CORAZÓN) ---
+# --- TAB 4: MORNING NOTE ---
 with tab4:
     st.header(t["prep_header"])
     st.write(t["prep_desc"])
@@ -132,18 +130,18 @@ with tab4:
             datos_m = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
             if datos_m:
                 stats = datos_m.get('results', {}).get('stats', {}).get('categories', [])
-                puntos_nd = "32.5" # Default if not found
+                puntos_nd = "32.5" 
                 for cat in stats:
                     if cat['name'] == 'scoring': puntos_nd = cat['stats'][0]['displayValue']
 
                 st.markdown(f"### 📄 Show Script - {datetime.now().strftime('%d/%m/%Y')}")
-                st.warning(f"**{t['analisis_pred']}:**\n\nNotre Dame promedia {puntos_nd} puntos por partido. Basado en el próximo rival, el punto clave de debate hoy es: **¿Podrá la ofensiva terrestre romper la línea de ventaja en el primer cuarto?**")
+                st.warning(f"**{t['analisis_pred']}:**\n\nNotre Dame promedia {puntos_nd} puntos. **Punto clave:** ¿Podrá la ofensiva terrestre romper la línea de ventaja hoy?")
                 
                 st.divider()
                 st.subheader("🔥 Show Outline")
-                st.write("1. **Opening:** Estado de salud del roster y clima para el sábado.")
+                st.write("1. **Opening:** Estado de salud del roster.")
                 st.write(f"2. **Deep Dive:** Análisis de los {puntos_nd} puntos promedio.")
-                st.write(f"3. **Recruiting:** Tendencias de X sobre los nuevos 4-star commits.")
+                st.write(f"3. **Recruiting:** Tendencias de X.")
 
     st.divider()
     st.subheader(t["ideas_header"])
