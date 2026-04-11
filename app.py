@@ -1,30 +1,50 @@
-import streamlit as st
-import requests
-
-# Configuración de la página
-st.title("🍀 Estadísticas en Vivo: Notre Dame")
-
-# Tu llave de la API (Aquí pones la que te llegó al correo)
-api_key = "+4QJIvbSYN9xIB8BJOVwqmgnEPcR7DfhlNZzssapv5jQkYba5zXfXUMYo8lPYtLy"
+# Tu llave de la API (Asegúrate de que sea la que te enviaron al correo)
+# Si no tienes una, regístrate en https://collegefootballdata.com/key
+api_key = "+4QJIvbSYN9xIB8BJOVwqmgnEPcR7DfhlNZzssapv5jQkYba5zXfXUMYo8lPYtLy" 
 headers = {"Authorization": f"Bearer {api_key}"}
 
-# 1. Función para traer los datos (Se ejecuta cada vez que entras)
 def obtener_datos():
+    # Probamos con el año 2025 que es el más reciente con datos completos
     url = "https://api.collegefootballdata.com/teams/stats?year=2025&team=Notre%20Dame"
     response = requests.get(url, headers=headers)
-    return response.json()
+    
+    if response.status_code == 200:
+        return response.json()
+    else:
+        st.error(f"Error de la API: Código {response.status_code}. Revisa tu API Key.")
+        return None
 
-# 2. Mostrar los datos en la pantalla
 datos = obtener_datos()
 
 if datos:
-    stats = datos[0]['stats']
-    st.write("### Estadísticas de la Temporada")
+    # Mostramos el nombre del equipo y el año
+    st.success(f"Datos cargados para {datos[0]['team']} (Temporada {datos[0]['year']})")
     
-    # Creamos columnas para que se vea profesional
-    col1, col2 = st.columns(2)
+    stats = datos[0]['stats']
+    
+    # Organizamos en columnas atractivas
+    col1, col2, col3 = st.columns(3)
+    
+    # Diccionario para traducir o filtrar categorías importantes
+    importantes = {
+        'offenseScore': "Puntos Ofensivos",
+        'defenseScore': "Puntos Defensivos",
+        'games': "Partidos Jugados"
+    }
+
     for s in stats:
-        if s['category'] in ['offenseScore', 'defenseScore']:
-            col1.metric(label=s['category'], value=s['stat'])
+        cat = s['category']
+        val = s['stat']
+        
+        if cat == 'offenseScore':
+            col1.metric("Puntos Ofensivos", val)
+        elif cat == 'defenseScore':
+            col2.metric("Puntos Defensivos", val)
+        elif cat == 'games':
+            col3.metric("Partidos", val)
+
+    # Mostrar todas las estadísticas en una tabla bonita
+    with st.expander("Ver todas las estadísticas detalladas"):
+        st.table(stats)
 else:
-    st.error("No se pudieron cargar los datos. Revisa tu API Key.")
+    st.warning("No hay datos disponibles para mostrar en este momento.")
