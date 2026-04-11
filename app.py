@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
-
+# 1. CONFIGURACIÓN (Esto no escribe nada en la pantalla, solo configura)
+st.set_page_config(page_title="ND Hub", page_icon="🍀", layout="wide")
 
 # 1. Configuración de la página (La barra se queda abierta por defecto)
 st.set_page_config(page_title="ND Stats", page_icon="🍀", initial_sidebar_state="expanded")
