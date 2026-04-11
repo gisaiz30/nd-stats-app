@@ -91,7 +91,35 @@ if st.button('🔄 Actualizar Estadísticas ahora'):
     st.cache_data.clear() # Esto borra la memoria vieja
     st.rerun()           # Esto reinicia la app para buscar datos nuevos
 # ------------------------
-
+# --- TAB 1: ESTADÍSTICAS (ESPN) CORREGIDO ---
+with tab1:
+    data_stats = fetch_data("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
+    if data_stats:
+        # Extraemos la lista de categorías de forma segura
+        categories = data_stats.get('results', {}).get('stats', {}).get('categories', [])
+        cols = st.columns(3)
+        
+        # Filtramos para encontrar los datos exactos por su nombre técnico
+        for cat in categories:
+            # 1. Buscamos Yardas de Pase
+            if cat['name'] == 'passing':
+                for s in cat['stats']:
+                    if s['name'] == 'netPassingYards':
+                        cols[0].metric(t["pase"], s['displayValue'])
+            
+            # 2. Buscamos Yardas de Tierra
+            if cat['name'] == 'rushing':
+                for s in cat['stats']:
+                    if s['name'] == 'rushingYards':
+                        cols[1].metric(t["tierra"], s['displayValue'])
+            
+            # 3. Buscamos Puntos Totales
+            if cat['name'] == 'scoring':
+                for s in cat['stats']:
+                    if s['name'] == 'totalPoints':
+                        cols[2].metric(t["puntos"], s['displayValue'])
+    else:
+        st.error(t["error"])
 # 2. Función para traer datos de la API de ESPN
 @st.cache_data(ttl=600)
 def obtener_datos_espn():
