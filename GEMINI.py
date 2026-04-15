@@ -3,7 +3,7 @@ import google.generativeai as genai
 import requests
 from datetime import datetime
 
-# 1. CONFIGURACIÓN DE LA PÁGINA (Debe ser lo primero de Streamlit)
+# 1. CONFIGURACIÓN DE LA PÁGINA (Debe ser la primera instrucción de Streamlit)
 st.set_page_config(
     page_title="ND Hub - Dream Assistant", 
     page_icon="🍀", 
@@ -11,16 +11,16 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. CONFIGURACIÓN DE GEMINI (Global)
-# Buscamos la clave en los Secrets de la web de Streamlit
+# 2. CONFIGURACIÓN GLOBAL DE GEMINI
+# Buscamos la clave que pegaste en el menú "Secrets" de la web de Streamlit
 if "GEMINI_API_KEY" in st.secrets:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
     model = genai.GenerativeModel('gemini-1.5-flash')
 else:
-    st.error("⚠️ Error: No se encontró 'GEMINI_API_KEY' en los Secrets de Streamlit.")
-    st.stop() # Detiene la app si no hay clave
+    st.error("⚠️ Error: No se encontró 'GEMINI_API_KEY' en los Secrets de Streamlit. Por favor, añádela en la configuración de la web.")
+    st.stop()
 
-# 3. DICCIONARIO DE IDIOMAS
+# --- DICCIONARIO DE IDIOMAS ---
 idiomas = {
     "Español": {
         "titulo": "🍀 Panel de Control Notre Dame",
@@ -45,13 +45,13 @@ idiomas = {
         "pase": "Passing Yards", "tierra": "Rushing Yards", "puntos": "Total Points",
         "desglose": "Full Breakdown", "fuentes": "External Sources",
         "prep_header": "🌅 Morning Note: Show Script",
-        "prep_desc": "Automatic generation of key points for the 8:00 AM show.",
+        "prep_desc": "Automatic generation of key points for the show.",
         "boton_guion": "🚀 Generate AI Script",
         "analisis_pred": "🧠 Gemini Analysis",
         "ideas_header": "💡 'Buy / Sell / Hold' Ideas",
         "idea1": "Is ND's defense the best of the Freeman era?",
-        "idea2": "Projection: Impact of new commitments.",
-        "idea3": "Analysis: Third-down performance.",
+        "idea2": "National ranking projection.",
+        "idea3": "Third-down performance analysis.",
         "link_team": "TeamRankings", "link_cfb": "CFBStats"
     }
 }
@@ -61,7 +61,7 @@ st.sidebar.title("Configuración")
 seleccion = st.sidebar.selectbox("Idioma / Language", list(idiomas.keys()))
 t = idiomas[seleccion]
 
-# 4. FUNCIONES DE AYUDA (Helper Functions)
+# 3. FUNCIONES DE LÓGICA
 @st.cache_data(ttl=600)
 def obtener_datos(url):
     try:
@@ -71,25 +71,22 @@ def obtener_datos(url):
         return None
 
 def chat_con_ia(consulta_usuario, datos_contexto):
-    # Acortamos los datos para no pasarnos del límite de Gemini
-    contexto_texto = str(datos_contexto)[:5000]
+    # Acortamos los datos para no saturar a la IA
+    resumen = str(datos_contexto)[:5000]
     
     instrucciones = f"""
-    Eres el 'Dream Assistant', un experto analista del equipo de fútbol americano de Notre Dame.
-    Tu objetivo es ayudar al equipo de producción de 'Irish Breakdown'.
-    Datos actuales de ESPN: {contexto_texto}
-    
-    Responde a la siguiente solicitud en el idioma {seleccion}:
-    {consulta_usuario}
+    Eres el 'Dream Assistant', analista experto de Notre Dame Football para 'Irish Breakdown'.
+    Datos de ESPN: {resumen}
+    Responde en {seleccion} de forma concisa y profesional.
     """
     
     try:
-        response = model.generate_content(instrucciones)
+        response = model.generate_content(f"{instrucciones}\n\nPregunta: {consulta_usuario}")
         return response.text
     except Exception as e:
-        return f"Error al conectar con Gemini: {str(e)}"
+        return f"Error en la conexión con la IA: {e}"
 
-# 5. INTERFAZ PRINCIPAL
+# 4. CUERPO PRINCIPAL
 st.title(t["titulo"])
 
 if st.button(t["boton"]):
@@ -129,3 +126,42 @@ with tab2:
                 c1, c2 = st.columns([1, 5])
                 with c1: st.image(p.get('headshot', {}).get('href', 'https://via.placeholder.com/50'), width=60)
                 with c2: st.write(f"**{p['fullName']}** | #{p.get('jersey', 'N/A')}")
+
+with tab3:
+    st.subheader("Class 2026 Commitments")
+    commits = [
+        {"name": "Noah Grubbs", "pos": "QB", "stars": "⭐⭐⭐⭐"}, 
+        {"name": "Jameson Knight", "pos": "WR", "stars": "⭐⭐⭐⭐⭐"}
+    ]
+    for c in commits: st.success(f"✅ {c['name']} ({c['pos']}) - {c['stars']}")
+
+with tab4:
+    st.header(t["prep_header"])
+    if st.button(t["boton_guion"], type="primary"):
+        with st.spinner('Gemini analizando estadísticas...'):
+            datos_m = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
+            guion = chat_con_ia("Genera un guion de 3 puntos clave para el show de radio.", datos_m)
+            st.info(guion)
+    
+    st.divider()
+    st.subheader(t["ideas_header"])
+    st.checkbox(t["idea1"])
+    st.checkbox(t["idea2"])
+    st.checkbox(t["idea3"])
+
+# --- CAJA DE CHAT INTERACTIVA ---
+st.divider()
+st.header("🤖 Pregunta al Dream Assistant")
+input_usuario = st.chat_input("Ej: ¿Cómo va el promedio de puntos de ND?")
+
+if input_usuario:
+    with st.chat_message("user"):
+        st.write(input_usuario)
+    
+    with st.spinner("Pensando..."):
+        # Contexto fresco para el chat
+        contexto_chat = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
+        respuesta = chat_con_ia(input_usuario, contexto_chat)
+        
+        with st.chat_message("assistant", avatar="🍀"):
+            st.write(respuesta)
