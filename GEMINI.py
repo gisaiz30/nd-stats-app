@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 from datetime import datetime
-import google.generativeai as genai
+from groq import Groq  # Usamos Groq para evitar errores de API
 
 # 1. CONFIGURACIÓN DE LA PÁGINA
 st.set_page_config(
@@ -11,19 +11,15 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-from groq import Groq
+# --- 2. CONFIGURACIÓN DE IA (GROQ) ---
+if "GROQ_API_KEY" in st.secrets:
+    # Conectamos con Groq de forma segura usando Secrets
+    client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+    st.success("🍀 Dream Assistant (Groq) Conectado")
+else:
+    st.error("⚠️ No se encontró la clave GROQ_API_KEY en los Secrets.")
+    client = None
 
-client = Groq(api_key=st.secrets["GROQ_API_KEY"])
-
-def preguntar_ia_gratis(datos, pregunta):
-    completion = client.chat.completions.create(
-        model="llama3-8b-8192", # Modelo gratuito y ultra rápido
-        messages=[
-            {"role": "system", "content": f"Eres analista de Notre Dame. Datos: {str(datos)[:5000]}"},
-            {"role": "user", "content": pregunta}
-        ]
-    )
-    return completion.choices[0].message.content
 # --- DICCIONARIO DE IDIOMAS ---
 idiomas = {
     "Español": {
@@ -33,11 +29,8 @@ idiomas = {
         "pase": "Yardas Pase", "tierra": "Yardas Tierra", "puntos": "Puntos Totales",
         "desglose": "Desglose Completo", "fuentes": "Fuentes Externas",
         "prep_header": "🌅 Morning Note: Guion del Show",
-        "prep_desc": "Generación automática de puntos clave para el show de las 8:00 AM.",
+        "prep_desc": "Generación automática de puntos clave para el show.",
         "boton_guion": "🚀 Generar Guion con IA",
-        "analisis_pred": "🧠 Análisis de Gemini IA",
-        "ideas_header": "💡 Ideas para 'Buy / Sell / Hold'",
-        "link_team": "TeamRankings", "link_cfb": "CFBStats"
     },
     "English": {
         "titulo": "🍀 Notre Dame Command Center",
@@ -46,11 +39,8 @@ idiomas = {
         "pase": "Passing Yards", "tierra": "Rushing Yards", "puntos": "Total Points",
         "desglose": "Full Breakdown", "fuentes": "External Sources",
         "prep_header": "🌅 Morning Note: Show Script",
-        "prep_desc": "Automatic generation of key points for the show.",
+        "prep_desc": "Automatic generation of show key points.",
         "boton_guion": "🚀 Generate AI Script",
-        "analisis_pred": "🧠 Gemini AI Analysis",
-        "ideas_header": "💡 'Buy / Sell / Hold' Ideas",
-        "link_team": "TeamRankings", "link_cfb": "CFBStats"
     }
 }
 
@@ -58,11 +48,6 @@ idiomas = {
 st.sidebar.title("Configuración")
 seleccion = st.sidebar.selectbox("Idioma / Language", list(idiomas.keys()))
 t = idiomas[seleccion]
-
-st.sidebar.divider()
-st.sidebar.subheader(t["fuentes"])
-st.sidebar.link_button(f"📊 {t['link_team']}", "https://www.teamrankings.com/ncf/team/notre-dame-fighting-irish/stats")
-st.sidebar.link_button(f"📈 {t['link_cfb']}", "http://www.cfbstats.com/2025/team/513/index.html")
 
 # 4. LÓGICA DE DATOS
 @st.cache_data(ttl=600)
@@ -72,31 +57,28 @@ def obtener_datos(url):
         return r.json()
     except: return None
 
-# 5. FUNCIÓN DE INTELIGENCIA (EL CORAZÓN DE LA IA)
+# 5. FUNCIÓN DE INTELIGENCIA (CORREGIDA PARA GROQ)
 def analizar_con_ia(datos_crudos, pregunta_usuario):
-    if model:
-        # Convertimos los datos JSON a texto plano para la IA
-        contexto = str(datos_crudos)[:7000] # Limitamos para no saturar a la IA
+    if client:
+        # Convertimos datos a texto y limitamos para no saturar
+        contexto = str(datos_crudos)[:6000]
         
-        # Le damos instrucciones MUY claras para que no invente
-        prompt_final = f"""
-        Actúa como un experto analista deportivo de los Notre Dame Fighting Irish.
-        DATOS REALES DE ESPN: {contexto}
-        
-        PREGUNTA DEL USUARIO: {pregunta_usuario}
-        
-        REGLAS:
-        1. Responde en {seleccion}.
-        2. Si la respuesta está en los datos, sé preciso (nombres, números, posiciones).
-        3. Si no encuentras la información, di: 'No tengo ese dato específico en los registros actuales de ESPN'.
-        4. Sé profesional y apasionado por Notre Dame.
-        """
         try:
-            response = model.generate_content(prompt_final)
-            return response.text
+            completion = client.chat.completions.create(
+                model="llama3-8b-8192", # Modelo gratuito y ultra rápido
+                messages=[
+                    {
+                        "role": "system", 
+                        "content": f"Eres un experto analista de Notre Dame. Responde en {seleccion}. Datos reales de ESPN: {contexto}"
+                    },
+                    {"role": "user", "content": pregunta_usuario}
+                ],
+                temperature=0.7
+            )
+            return completion.choices[0].message.content
         except Exception as e:
-            return f"Error al procesar con IA: {e}"
-    return "IA no configurada correctamente en Streamlit."
+            return f"Error al procesar con Groq: {e}"
+    return "IA no configurada."
 
 # 6. CUERPO PRINCIPAL
 st.title(t["titulo"])
@@ -114,7 +96,6 @@ with tab1:
         categorias = datos_stats.get('results', {}).get('stats', {}).get('categories', [])
         st.subheader(t["resumen"])
         col1, col2, col3 = st.columns(3)
-        # Lógica de extracción de métricas clave
         for cat in categorias:
             if cat['name'] == 'passing':
                 for s in cat['stats']:
@@ -148,35 +129,30 @@ with tab3:
     commits = [{"name": "Noah Grubbs", "pos": "QB", "stars": "⭐⭐⭐⭐"}, {"name": "Jameson Knight", "pos": "WR", "stars": "⭐⭐⭐⭐⭐"}]
     for c in commits: st.success(f"✅ {c['name']} ({c['pos']}) - {c['stars']}")
 
-# --- TAB 4: MORNING NOTE (IA GENERATIVA) ---
+# --- TAB 4: MORNING NOTE ---
 with tab4:
     st.header(t["prep_header"])
     if st.button(t["boton_guion"], type="primary"):
-        with st.spinner('Gemini IA está redactando el guion...'):
+        with st.spinner('Groq IA está redactando el guion...'):
             datos_m = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
             if datos_m:
-                guion_ia = analizar_con_ia(datos_m, "Genera un guion de 3 puntos clave para mi show de radio. Analiza los puntos por partido y yardas totales.")
+                guion = analizar_con_ia(datos_m, "Genera un guion de 3 puntos clave para mi show de radio. Analiza los puntos por partido y yardas totales.")
                 st.markdown(f"### 📄 Show Script IA - {datetime.now().strftime('%d/%m/%Y')}")
-                st.info(guion_ia)
+                st.info(guion)
             else:
-                st.error("No hay datos de ESPN disponibles.")
+                st.error("No hay datos disponibles.")
 
-# --- SECCIÓN: CHAT INTERACTIVO (LA MEJORA) ---
+# --- SECCIÓN: CHAT INTERACTIVO ---
 st.divider()
 st.subheader("🤖 Pregunta al Dream Assistant")
-# Usamos chat_input que es más moderno y bonito
 user_question = st.chat_input("Ejemplo: ¿Quién es el líder en touchdowns?")
 
 if user_question:
-    # Mostramos lo que tú preguntaste
     with st.chat_message("user"):
         st.write(user_question)
         
-    # La IA responde
-    with st.spinner('Consultando con los servidores de ESPN...'):
-        # Le enviamos las estadísticas completas para que tenga contexto
-        datos_completos = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
-        respuesta = analizar_con_ia(datos_completos, user_question)
-        
+    with st.spinner('Analizando datos con Groq...'):
+        ctx = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
+        respuesta = analizar_con_ia(ctx, user_question)
         with st.chat_message("assistant", avatar="🍀"):
             st.write(respuesta)
