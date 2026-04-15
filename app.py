@@ -1,4 +1,12 @@
 import streamlit as st
+import google.generativeai as genai
+
+# Esto busca automáticamente la llave que pegaste en los "Secrets"
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+
+# Seleccionas el modelo Flash (que es el más rápido para apps)
+model = genai.GenerativeModel('gemini-1.5-flash')
+import streamlit as st
 import requests
 from datetime import datetime
 
