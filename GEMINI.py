@@ -157,3 +157,23 @@ with tab4:
     st.checkbox(t["idea1"])
     st.checkbox(t["idea2"])
     st.checkbox(t["idea3"])
+st.divider()
+st.header("🤖 Pregunta al Dream Assistant")
+st.write("Haz cualquier pregunta sobre las estadísticas o el roster actual.")
+
+# Creamos el contenedor de la pregunta
+pregunta_usuario = st.chat_input("Ej: ¿Quién lidera en yardas por tierra?")
+
+if pregunta_usuario:
+    with st.chat_message("user"):
+        st.write(pregunta_usuario)
+    
+    with st.spinner("Consultando inteligencia deportiva..."):
+        # Obtenemos datos de stats para darle contexto a la IA
+        contexto = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
+        
+        # Llamamos a la función que creamos arriba
+        respuesta_ai = chat_con_ia(pregunta_usuario, contexto)
+        
+        with st.chat_message("assistant", avatar="🍀"):
+            st.write(respuesta_ai)
