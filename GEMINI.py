@@ -3,7 +3,7 @@ import google.generativeai as genai
 import requests
 from datetime import datetime
 
-# 1. CONFIGURACIÓN DE LA PÁGINA (Debe ser la primera instrucción de Streamlit)
+# 1. CONFIGURACIÓN DE LA PÁGINA
 st.set_page_config(
     page_title="ND Hub - Dream Assistant", 
     page_icon="🍀", 
@@ -12,13 +12,13 @@ st.set_page_config(
 )
 
 # 2. CONFIGURACIÓN GLOBAL DE GEMINI
-if "AIzaSyAf6hgvJbjs1asVU127PXy3X2z3O2NpuiA" in st.secrets:
+# Intenta leer la clave desde los Secrets de Streamlit
+if "GEMINI_API_KEY" in st.secrets:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    # USAMOS EL NOMBRE COMPLETO DEL MODELO AQUÍ:
-    model = genai.GenerativeModel('gemini-1.5-flash-latest') 
+    model = genai.GenerativeModel('gemini-1.5-flash')
 else:
-    st.error("⚠️ Error: No se encontró 'GEMINI_API_KEY' en los Secrets.")
-    st.stop()
+    st.warning("⚠️ La IA está desactivada. Añade 'GEMINI_API_KEY' en los Secrets de Streamlit para habilitarla.")
+    model = None
 
 # --- DICCIONARIO DE IDIOMAS ---
 idiomas = {
@@ -56,7 +56,7 @@ idiomas = {
     }
 }
 
-# SELECTOR DE IDIOMA (Barra lateral)
+# Barra lateral
 st.sidebar.title("Configuración")
 seleccion = st.sidebar.selectbox("Idioma / Language", list(idiomas.keys()))
 t = idiomas[seleccion]
@@ -71,20 +71,20 @@ def obtener_datos(url):
         return None
 
 def chat_con_ia(consulta_usuario, datos_contexto):
-    # Acortamos los datos para no saturar a la IA
+    if model is None:
+        return "La IA no está configurada. Por favor, revisa los Secrets en Streamlit."
+    
     resumen = str(datos_contexto)[:5000]
-    
     instrucciones = f"""
-    Eres el 'Dream Assistant', analista experto de Notre Dame Football para 'Irish Breakdown'.
-    Datos de ESPN: {resumen}
-    Responde en {seleccion} de forma concisa y profesional.
+    Eres el 'Dream Assistant', analista de Notre Dame Football. 
+    Datos actuales de ESPN: {resumen}
+    Responde en {seleccion} de forma experta y breve.
     """
-    
     try:
         response = model.generate_content(f"{instrucciones}\n\nPregunta: {consulta_usuario}")
         return response.text
     except Exception as e:
-        return f"Error en la conexión con la IA: {e}"
+        return f"Error al conectar con la IA: {e}"
 
 # 4. CUERPO PRINCIPAL
 st.title(t["titulo"])
@@ -93,7 +93,6 @@ if st.button(t["boton"]):
     st.cache_data.clear()
     st.rerun()
 
-# --- PESTAÑAS ---
 tab1, tab2, tab3, tab4 = st.tabs([t["tab1"], t["tab2"], t["tab3"], t["tab4"]])
 
 with tab1:
@@ -112,10 +111,12 @@ with tab1:
             if cat['name'] == 'scoring':
                 for s in cat['stats']:
                     if s['name'] == 'totalPoints': col3.metric(t["puntos"], s['displayValue'])
+        
         st.divider()
         for cat in categorias:
             with st.expander(f"📊 {cat['displayName']}"):
-                for s in cat['stats']: st.write(f"**{s['displayName']}:** {s['displayValue']}")
+                for s in cat['stats']:
+                    st.write(f"**{s['displayName']}:** {s['displayValue']}")
 
 with tab2:
     roster = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/roster")
@@ -124,8 +125,10 @@ with tab2:
             st.write(f"### {group['position']}")
             for p in group['items']:
                 c1, c2 = st.columns([1, 5])
-                with c1: st.image(p.get('headshot', {}).get('href', 'https://via.placeholder.com/50'), width=60)
-                with c2: st.write(f"**{p['fullName']}** | #{p.get('jersey', 'N/A')}")
+                with c1:
+                    st.image(p.get('headshot', {}).get('href', 'https://via.placeholder.com/50'), width=60)
+                with c2:
+                    st.write(f"**{p['fullName']}** | #{p.get('jersey', 'N/A')}")
 
 with tab3:
     st.subheader("Class 2026 Commitments")
@@ -133,14 +136,15 @@ with tab3:
         {"name": "Noah Grubbs", "pos": "QB", "stars": "⭐⭐⭐⭐"}, 
         {"name": "Jameson Knight", "pos": "WR", "stars": "⭐⭐⭐⭐⭐"}
     ]
-    for c in commits: st.success(f"✅ {c['name']} ({c['pos']}) - {c['stars']}")
+    for c in commits:
+        st.success(f"✅ {c['name']} ({c['pos']}) - {c['stars']}")
 
 with tab4:
     st.header(t["prep_header"])
     if st.button(t["boton_guion"], type="primary"):
-        with st.spinner('Gemini analizando estadísticas...'):
-            datos_m = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
-            guion = chat_con_ia("Genera un guion de 3 puntos clave para el show de radio.", datos_m)
+        with st.spinner('Gemini analizando...'):
+            contexto_m = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
+            guion = chat_con_ia("Genera un guion de 3 puntos para el show de las 8 AM.", contexto_m)
             st.info(guion)
     
     st.divider()
@@ -149,19 +153,16 @@ with tab4:
     st.checkbox(t["idea2"])
     st.checkbox(t["idea3"])
 
-# --- CAJA DE CHAT INTERACTIVA ---
+# --- CHAT ---
 st.divider()
 st.header("🤖 Pregunta al Dream Assistant")
-input_usuario = st.chat_input("Ej: ¿Cómo va el promedio de puntos de ND?")
+pregunta = st.chat_input("¿Quién es el líder de la temporada?")
 
-if input_usuario:
+if pregunta:
     with st.chat_message("user"):
-        st.write(input_usuario)
-    
-    with st.spinner("Pensando..."):
-        # Contexto fresco para el chat
-        contexto_chat = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
-        respuesta = chat_con_ia(input_usuario, contexto_chat)
-        
+        st.write(pregunta)
+    with st.spinner("Consultando inteligencia..."):
+        ctx = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
+        resp = chat_con_ia(pregunta, ctx)
         with st.chat_message("assistant", avatar="🍀"):
-            st.write(respuesta)
+            st.write(resp)
