@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 from datetime import datetime
-from groq import Groq  # Usamos Groq para evitar errores de API
+from groq import Groq
 
 # 1. CONFIGURACIÓN DE LA PÁGINA
 st.set_page_config(
@@ -13,7 +13,6 @@ st.set_page_config(
 
 # --- 2. CONFIGURACIÓN DE IA (GROQ) ---
 if "GROQ_API_KEY" in st.secrets:
-    # Conectamos con Groq de forma segura usando Secrets
     client = Groq(api_key=st.secrets["GROQ_API_KEY"])
     st.success("🍀 Dream Assistant (Groq) Conectado")
 else:
@@ -50,18 +49,19 @@ seleccion = st.sidebar.selectbox("Idioma / Language", list(idiomas.keys()))
 t = idiomas[seleccion]
 
 # 4. LÓGICA DE DATOS
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=300) # Reducido a 5 min para mayor frescura
 def obtener_datos(url):
     try:
         r = requests.get(url)
         return r.json()
     except: return None
 
-# 5. FUNCIÓN DE INTELIGENCIA (ACTUALIZADA A MODELO 2026)
+# 5. FUNCIÓN DE INTELIGENCIA (PROMPT DE HIERRO 2026)
 def analizar_con_ia(datos_crudos, pregunta_usuario):
     if client:
-        # Aquí puedes sumar datos de varias fuentes si quieres
-        contexto = f"FECHA ACTUAL: {datetime.now().strftime('%d/%m/%Y')}\nDATOS FRESCOS DE ESPN: {str(datos_crudos)[:7000]}"
+        # Forzamos la fecha y el contexto en el mensaje
+        fecha_actual = datetime.now().strftime('%d/%m/%Y')
+        contexto = f"FECHA DEL SISTEMA: {fecha_actual}\nDATOS EN TIEMPO REAL: {str(datos_crudos)[:7000]}"
         
         try:
             completion = client.chat.completions.create(
@@ -69,17 +69,21 @@ def analizar_con_ia(datos_crudos, pregunta_usuario):
                 messages=[
                     {
                         "role": "system", 
-                        "content": f"""Eres el analista oficial de Notre Dame en tiempo real. 
-                        TU CONOCIMIENTO PREVIO ESTÁ OBSOLETO. 
-                        SOLO debes usar los 'DATOS FRESCOS' proporcionados para responder. 
-                        Si los datos dicen que estamos en 2026, ignora cualquier cosa de 2023.
-                        Responde siempre en {seleccion}."""
+                        "content": f"""Eres el analista oficial de Notre Dame. 
+                        REGLA CRÍTICA: Ignora tu base de datos de entrenamiento (2023). 
+                        SOLO usa los 'DATOS EN TIEMPO REAL' proporcionados. Estamos en el año 2026.
+                        Si los datos no mencionan algo, di que no está en el reporte de ESPN.
+                        Responde siempre en {seleccion} con tono profesional y apasionado."""
                     },
-                    {"role": "user", "content": pregunta_usuario}
+                    {"role": "user", "content": f"{contexto}\n\nPREGUNTA: {pregunta_usuario}"}
                 ],
-                temperature=0.1 # Bajamos la temperatura para que no invente (más preciso)
+                temperature=0.1 # Muy bajo para evitar alucinaciones
             )
             return completion.choices[0].message.content
+        except Exception as e:
+            return f"Error al procesar con Groq: {e}"
+    return "IA no configurada."
+
 # 6. CUERPO PRINCIPAL
 st.title(t["titulo"])
 
@@ -129,44 +133,40 @@ with tab3:
     commits = [{"name": "Noah Grubbs", "pos": "QB", "stars": "⭐⭐⭐⭐"}, {"name": "Jameson Knight", "pos": "WR", "stars": "⭐⭐⭐⭐⭐"}]
     for c in commits: st.success(f"✅ {c['name']} ({c['pos']}) - {c['stars']}")
 
-# --- TAB 4: MORNING NOTE ---
+# --- TAB 4: MORNING NOTE (MULTIFUENTE) ---
 with tab4:
     st.header(t["prep_header"])
     if st.button(t["boton_guion"], type="primary"):
-        with st.spinner('Groq IA está redactando el guion...'):
-            datos_m = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
-            if datos_m:
-                guion = analizar_con_ia(datos_m, "Genera un guion de 3 puntos clave para mi show de radio. Analiza los puntos por partido y yardas totales.")
-                st.markdown(f"### 📄 Show Script IA - {datetime.now().strftime('%d/%m/%Y')}")
-                st.info(guion)
-            else:
-                st.error("No hay datos disponibles.")
+        with st.spinner('Analizando estadísticas y noticias para el show...'):
+            s_datos = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
+            n_datos = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/news")
+            
+            guion = analizar_con_ia(
+                {"stats": s_datos, "news": n_datos}, 
+                "Genera un guion de 3 puntos clave para mi show de radio. Incluye un análisis de los números actuales y menciona las noticias más recientes."
+            )
+            st.markdown(f"### 📄 Show Script IA - {datetime.now().strftime('%d/%m/%Y')}")
+            st.info(guion)
 
 # --- SECCIÓN: CHAT INTERACTIVO (MULTIFUENTE) ---
 st.divider()
 st.subheader("🤖 Pregunta al Dream Assistant")
-user_question = st.chat_input("Ejemplo: ¿Cuáles son las últimas noticias del equipo?")
+user_question = st.chat_input("Ejemplo: ¿Qué dicen las últimas noticias sobre los jugadores?")
 
 if user_question:
     with st.chat_message("user"):
         st.write(user_question)
         
-    # AQUÍ VA EL BLOQUE MULTIFUENTE
-    with st.spinner('Consultando múltiples fuentes (ESPN Stats + News)...'):
-        # 1. Traemos las estadísticas
+    with st.spinner('Consultando ESPN Stats + News...'):
         espn_stats = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
-        
-        # 2. Traemos las últimas noticias/calendario
         espn_news = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/news")
         
-        # 3. Empaquetamos todo para que la IA lo lea junto
         mega_contexto = {
             "estadisticas": espn_stats,
             "noticias": espn_news,
             "fecha_hoy": datetime.now().strftime('%d/%m/%Y')
         }
         
-        # 4. Enviamos el paquete completo a la IA
         respuesta = analizar_con_ia(mega_contexto, user_question)
         
         with st.chat_message("assistant", avatar="🍀"):
