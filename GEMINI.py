@@ -12,12 +12,17 @@ st.set_page_config(
 )
 
 # 2. CONFIGURACIÓN GLOBAL DE GEMINI
-# Intenta leer la clave desde los Secrets de Streamlit
-if "GEMINI_API_KEY" in st.secrets:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    model = genai.GenerativeModel('gemini-1.5-flash')
+if "AIzaSyAf6hgvJbjs1asVU127PXy3X2z3O2NpuiA" in st.secrets:
+    genai.configure(api_key=st.secrets["AIzaSyAf6hgvJbjs1asVU127PXy3X2z3O2NpuiA"])
+    
+    # Intentamos con la versión estable más compatible
+    try:
+        model = genai.GenerativeModel('gemini-1.5-flash-latest')
+    except:
+        # Si la anterior falla, usamos Pro como respaldo
+        model = genai.GenerativeModel('gemini-pro')
 else:
-    st.warning("⚠️ La IA está desactivada. Añade 'GEMINI_API_KEY' en los Secrets de Streamlit para habilitarla.")
+    st.warning("⚠️ La IA está desactivada. Revisa los Secrets.")
     model = None
 
 # --- DICCIONARIO DE IDIOMAS ---
