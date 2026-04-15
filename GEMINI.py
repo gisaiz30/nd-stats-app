@@ -19,7 +19,8 @@ if "GEMINI_API_KEY" in st.secrets:
 else:
     st.error("⚠️ Falta la configuración de 'GEMINI_API_KEY' en los Secrets de Streamlit.")
     model = None
-
+# Cambiamos 'gemini-1.5-flash' por 'gemini-1.5-flash-latest'
+model = genai.GenerativeModel('gemini-1.5-flash-latest')
 # --- DICCIONARIO DE IDIOMAS ---
 idiomas = {
     "Español": {
