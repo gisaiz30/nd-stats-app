@@ -247,14 +247,21 @@ with tab4:
             res = preguntar_al_assistant({"stats": s, "news": n}, "Genera un guion de 3 puntos para radio.", idioma_sel)
             st.info(res)
 
-# --- CHAT ---
-st.divider()
-st.subheader(t["chat_header"])
-user_input = st.chat_input(t["chat_placeholder"])
+# --- SECCIÓN DE CHAT ACTUALIZADA ---
 if user_input:
     with st.chat_message("user"): st.write(user_input)
     with st.spinner(t["consultando"]):
+        # Descargamos TODO el contexto para que la IA no tenga excusas
         s_c = obtener_datos_api(URL_STATS)
         n_c = obtener_datos_api(URL_NEWS)
-        ans = preguntar_al_assistant({"stats": s_c, "news": n_c}, user_input, idioma_sel)
+        r_c = obtener_datos_api(URL_ROSTER) # <--- AÑADIMOS EL ROSTER AQUÍ
+        
+        # Metemos todo en el paquete de información
+        mega_contexto = {
+            "stats": s_c, 
+            "news": n_c, 
+            "roster": r_c
+        }
+        
+        ans = preguntar_al_assistant(mega_contexto, user_input, idioma_sel)
         with st.chat_message("assistant", avatar="🍀"): st.write(ans)
