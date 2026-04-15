@@ -60,25 +60,26 @@ def obtener_datos(url):
 # 5. FUNCIÓN DE INTELIGENCIA (ACTUALIZADA A MODELO 2026)
 def analizar_con_ia(datos_crudos, pregunta_usuario):
     if client:
-        contexto = str(datos_crudos)[:6000]
+        # Aquí puedes sumar datos de varias fuentes si quieres
+        contexto = f"FECHA ACTUAL: {datetime.now().strftime('%d/%m/%Y')}\nDATOS FRESCOS DE ESPN: {str(datos_crudos)[:7000]}"
         
         try:
             completion = client.chat.completions.create(
-                # CAMBIA ESTA LÍNEA ABAJO:
-                model="llama-3.1-8b-instant", 
+                model="llama-3.1-8b-instant",
                 messages=[
                     {
                         "role": "system", 
-                        "content": f"Eres un experto analista de Notre Dame. Responde en {seleccion}. Datos reales de ESPN: {contexto}"
+                        "content": f"""Eres el analista oficial de Notre Dame en tiempo real. 
+                        TU CONOCIMIENTO PREVIO ESTÁ OBSOLETO. 
+                        SOLO debes usar los 'DATOS FRESCOS' proporcionados para responder. 
+                        Si los datos dicen que estamos en 2026, ignora cualquier cosa de 2023.
+                        Responde siempre en {seleccion}."""
                     },
                     {"role": "user", "content": pregunta_usuario}
                 ],
-                temperature=0.7
+                temperature=0.1 # Bajamos la temperatura para que no invente (más preciso)
             )
             return completion.choices[0].message.content
-        except Exception as e:
-            return f"Error al procesar con Groq: {e}"
-    return "IA no configurada."
 # 6. CUERPO PRINCIPAL
 st.title(t["titulo"])
 
@@ -141,17 +142,32 @@ with tab4:
             else:
                 st.error("No hay datos disponibles.")
 
-# --- SECCIÓN: CHAT INTERACTIVO ---
+# --- SECCIÓN: CHAT INTERACTIVO (MULTIFUENTE) ---
 st.divider()
 st.subheader("🤖 Pregunta al Dream Assistant")
-user_question = st.chat_input("Ejemplo: ¿Quién es el líder en touchdowns?")
+user_question = st.chat_input("Ejemplo: ¿Cuáles son las últimas noticias del equipo?")
 
 if user_question:
     with st.chat_message("user"):
         st.write(user_question)
         
-    with st.spinner('Analizando datos con Groq...'):
-        ctx = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
-        respuesta = analizar_con_ia(ctx, user_question)
+    # AQUÍ VA EL BLOQUE MULTIFUENTE
+    with st.spinner('Consultando múltiples fuentes (ESPN Stats + News)...'):
+        # 1. Traemos las estadísticas
+        espn_stats = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
+        
+        # 2. Traemos las últimas noticias/calendario
+        espn_news = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/news")
+        
+        # 3. Empaquetamos todo para que la IA lo lea junto
+        mega_contexto = {
+            "estadisticas": espn_stats,
+            "noticias": espn_news,
+            "fecha_hoy": datetime.now().strftime('%d/%m/%Y')
+        }
+        
+        # 4. Enviamos el paquete completo a la IA
+        respuesta = analizar_con_ia(mega_contexto, user_question)
+        
         with st.chat_message("assistant", avatar="🍀"):
             st.write(respuesta)
