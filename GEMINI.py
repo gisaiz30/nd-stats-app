@@ -247,21 +247,33 @@ with tab4:
             res = preguntar_al_assistant({"stats": s, "news": n}, "Genera un guion de 3 puntos para radio.", idioma_sel)
             st.info(res)
 
-# --- SECCIÓN DE CHAT ACTUALIZADA ---
+# --- SECCIÓN DE CHAT CORREGIDA ---
+st.divider()
+st.subheader(t["chat_header"])
+
+# 1. Aquí definimos 'user_input' (esta es la línea que probablemente falta o tiene otro nombre)
+user_input = st.chat_input(t["chat_placeholder"])
+
+# 2. Ahora sí podemos preguntar 'if user_input:'
 if user_input:
-    with st.chat_message("user"): st.write(user_input)
+    with st.chat_message("user"): 
+        st.write(user_input)
+        
     with st.spinner(t["consultando"]):
-        # Descargamos TODO el contexto para que la IA no tenga excusas
+        # Descargamos todo el contexto para que la IA tenga los nombres de los jugadores
         s_c = obtener_datos_api(URL_STATS)
         n_c = obtener_datos_api(URL_NEWS)
-        r_c = obtener_datos_api(URL_ROSTER) # <--- AÑADIMOS EL ROSTER AQUÍ
+        r_c = obtener_datos_api(URL_ROSTER) 
         
-        # Metemos todo en el paquete de información
+        # Paquete de información total
         mega_contexto = {
             "stats": s_c, 
             "news": n_c, 
             "roster": r_c
         }
         
+        # Llamada a la IA pasándole el mega_contexto
         ans = preguntar_al_assistant(mega_contexto, user_input, idioma_sel)
-        with st.chat_message("assistant", avatar="🍀"): st.write(ans)
+        
+        with st.chat_message("assistant", avatar="🍀"): 
+            st.write(ans)
