@@ -122,3 +122,10 @@ with tab1:
 
 with tab2:
     roster = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/roster")
+    if roster:
+        for group in roster.get('athletes', []):
+            st.write(f"### {group['position']}")
+            for p in group['items']:
+                c1, c2 = st.columns([1, 5])
+                with c1: st.image(p.get('headshot', {}).get('href', 'https://via.placeholder.com/50'), width=60)
+                with c2: st.write(f"**{p['fullName']}** | #{p.get('jersey', 'N/A')}")
