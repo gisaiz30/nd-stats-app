@@ -71,7 +71,21 @@ st.title(t["titulo"])
 if st.button(t["boton"]):
     st.cache_data.clear()
     st.rerun()
-
+def chat_con_ia(consulta_usuario, datos_contexto):
+    # Creamos un resumen simple de los datos para que la IA no se pierda
+    instrucciones = f"""
+    Eres el 'Dream Assistant' experto en Notre Dame Football. 
+    Usa estos datos de ESPN para responder: {str(datos_contexto)[:4000]}
+    
+    Reglas:
+    1. Si no sabes la respuesta basada en los datos, dilo honestamente.
+    2. Responde siempre en el idioma que te pregunten.
+    3. Sé amable y usa datos específicos (números, nombres).
+    """
+    
+    # Combinamos instrucciones + pregunta
+    response = model.generate_content(f"{instrucciones}\n\nPregunta del usuario: {consulta_usuario}")
+    return response.text
 # --- DEFINICIÓN DE LAS 4 PESTAÑAS ---
 tab1, tab2, tab3, tab4 = st.tabs([t["tab1"], t["tab2"], t["tab3"], t["tab4"]])
 
