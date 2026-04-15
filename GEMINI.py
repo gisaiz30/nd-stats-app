@@ -11,28 +11,19 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. CONFIGURACIÓN DE GEMINI (ELIMINAR ERROR 404) ---
-if "GEMINI_API_KEY" in st.secrets:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    
-    # Usamos 'gemini-pro' a secas, sin números de versión. 
-    # Es el nombre más estable y compatible con la API v1.
-    try:
-        model = genai.GenerativeModel('gemini-pro')
-        # Hacemos una mini prueba silenciosa
-        model.generate_content("ok")
-        st.success("🍀 Dream Assistant Conectado")
-    except Exception as e:
-        # Si 'gemini-pro' falla, intentamos la versión flash más básica
-        try:
-            model = genai.GenerativeModel('gemini-1.5-flash-8b')
-            st.success("🍀 Dream Assistant Conectado (Modo Lite)")
-        except:
-            st.error(f"⚠️ Error crítico de API: {e}")
-            model = None
-else:
-    st.error("⚠️ No se encontró la clave en Secrets.")
-    model = None
+from groq import Groq
+
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+
+def preguntar_ia_gratis(datos, pregunta):
+    completion = client.chat.completions.create(
+        model="llama3-8b-8192", # Modelo gratuito y ultra rápido
+        messages=[
+            {"role": "system", "content": f"Eres analista de Notre Dame. Datos: {str(datos)[:5000]}"},
+            {"role": "user", "content": pregunta}
+        ]
+    )
+    return completion.choices[0].message.content
 # --- DICCIONARIO DE IDIOMAS ---
 idiomas = {
     "Español": {
