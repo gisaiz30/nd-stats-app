@@ -121,4 +121,4 @@ with tab1:
                 for s in cat['stats']: st.write(f"**{s['displayName']}:** {s['displayValue']}")
 
 with tab2:
-    roster = obtener_datos("
+    roster = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/roster")
