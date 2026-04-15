@@ -11,28 +11,30 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. CONFIGURACIÓN DE GEMINI (Versión Actualizada 2026) ---
+# --- 2. CONFIGURACIÓN DE GEMINI (Versión Estable 2026) ---
 if "GEMINI_API_KEY" in st.secrets:
+    # Configuramos la versión estable de la API para evitar el error 404
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
     
-    # Probamos con los nuevos identificadores de 2026
     try:
-        # 1. El modelo estándar actual para apps rápidas
-        model = genai.GenerativeModel('gemini-1.5-flash') 
+        # Usamos el nombre del modelo sin el prefijo 'models/' 
+        # para que la librería lo gestione automáticamente
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        # Prueba rápida para verificar que responde
+        model.generate_content("test") 
+        st.success("🍀 Dream Assistant Conectado")
     except:
         try:
-            # 2. Si el anterior falla, usamos la versión específica de producción
-            model = genai.GenerativeModel('models/gemini-1.5-flash')
-        except:
-            # 3. Último recurso: El modelo Pro estable
+            # Si falla, probamos con la versión Pro
             model = genai.GenerativeModel('gemini-1.5-pro')
-            
-    if model:
-        st.success("🍀 Dream Assistant Conectado con éxito")
+            st.success("🍀 Dream Assistant Conectado (Modo Pro)")
+        except Exception as e:
+            st.error(f"⚠️ Error de conexión: {e}")
+            model = None
 else:
     st.error("⚠️ No se encontró la clave en Secrets.")
     model = None
-
 # --- DICCIONARIO DE IDIOMAS ---
 idiomas = {
     "Español": {
