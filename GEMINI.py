@@ -57,15 +57,15 @@ def obtener_datos(url):
         return r.json()
     except: return None
 
-# 5. FUNCIÓN DE INTELIGENCIA (CORREGIDA PARA GROQ)
+# 5. FUNCIÓN DE INTELIGENCIA (ACTUALIZADA A MODELO 2026)
 def analizar_con_ia(datos_crudos, pregunta_usuario):
     if client:
-        # Convertimos datos a texto y limitamos para no saturar
         contexto = str(datos_crudos)[:6000]
         
         try:
             completion = client.chat.completions.create(
-                model="llama3-8b-8192", # Modelo gratuito y ultra rápido
+                # CAMBIA ESTA LÍNEA ABAJO:
+                model="llama-3.1-8b-instant", 
                 messages=[
                     {
                         "role": "system", 
@@ -79,7 +79,6 @@ def analizar_con_ia(datos_crudos, pregunta_usuario):
         except Exception as e:
             return f"Error al procesar con Groq: {e}"
     return "IA no configurada."
-
 # 6. CUERPO PRINCIPAL
 st.title(t["titulo"])
 
