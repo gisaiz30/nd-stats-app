@@ -57,11 +57,19 @@ def obtener_datos(url):
     except: return None
 
 # 5. FUNCIÓN DE INTELIGENCIA (PROMPT DE HIERRO 2026)
+# 5. FUNCIÓN DE INTELIGENCIA (EXTRACCIÓN DE DATOS MEJORADA)
 def analizar_con_ia(datos_crudos, pregunta_usuario):
     if client:
-        # Forzamos la fecha y el contexto en el mensaje
         fecha_actual = datetime.now().strftime('%d/%m/%Y')
-        contexto = f"FECHA DEL SISTEMA: {fecha_actual}\nDATOS EN TIEMPO REAL: {str(datos_crudos)[:7000]}"
+        
+        # Simplificamos los datos para que la IA no se confunda con códigos raros
+        # Le decimos explícitamente que el equipo es NOTRE DAME
+        contexto_limpio = f"""
+        EQUIPO: Notre Dame Fighting Irish (NCAAF)
+        TEMPORADA: 2025-2026
+        FECHA DE HOY: {fecha_actual}
+        REPORTE DE ESPN: {str(datos_crudos)[:7500]}
+        """
         
         try:
             completion = client.chat.completions.create(
@@ -69,21 +77,20 @@ def analizar_con_ia(datos_crudos, pregunta_usuario):
                 messages=[
                     {
                         "role": "system", 
-                        "content": f"""Eres el analista oficial de Notre Dame. 
-                        REGLA CRÍTICA: Ignora tu base de datos de entrenamiento (2023). 
-                        SOLO usa los 'DATOS EN TIEMPO REAL' proporcionados. Estamos en el año 2026.
-                        Si los datos no mencionan algo, di que no está en el reporte de ESPN.
-                        Responde siempre en {seleccion} con tono profesional y apasionado."""
+                        "content": f"""Eres el analista experto de Notre Dame. 
+                        Los datos proporcionados son de los Fighting Irish. 
+                        Si ves estadísticas, asume que pertenecen al equipo o sus jugadores.
+                        NUNCA digas que no sabes el equipo, el equipo es Notre Dame.
+                        Responde de forma directa y apasionada en {seleccion}."""
                     },
-                    {"role": "user", "content": f"{contexto}\n\nPREGUNTA: {pregunta_usuario}"}
+                    {"role": "user", "content": f"{contexto_limpio}\n\nPREGUNTA: {pregunta_usuario}"}
                 ],
-                temperature=0.1 # Muy bajo para evitar alucinaciones
+                temperature=0.2
             )
             return completion.choices[0].message.content
         except Exception as e:
-            return f"Error al procesar con Groq: {e}"
+            return f"Error en la conexión con Groq: {e}"
     return "IA no configurada."
-
 # 6. CUERPO PRINCIPAL
 st.title(t["titulo"])
 
