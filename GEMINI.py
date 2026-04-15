@@ -11,21 +11,25 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. CONFIGURACIÓN DE GEMINI ---
+# --- 2. CONFIGURACIÓN DE GEMINI (Versión 2026) ---
 if "GEMINI_API_KEY" in st.secrets:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
     
-    # Intentamos primero con la versión más compatible de todas
+    # Intentamos conectar con el modelo más nuevo y estable
     try:
-        # 'gemini-1.5-flash' es el estándar actual
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # 1. Intentamos con el estándar de 2026
+        model = genai.GenerativeModel('gemini-2.5-flash')
     except:
-        # Si da error 404, usamos el modelo Pro que es infalible
-        model = genai.GenerativeModel('gemini-pro')
-        
-    st.success("✅ Conexión con IA establecida")
+        try:
+            # 2. Si falla, probamos con el modelo de última generación
+            model = genai.GenerativeModel('gemini-3-flash-preview')
+        except:
+            # 3. Último recurso: el alias universal
+            model = genai.GenerativeModel('gemini-flash-latest')
+            
+    st.success("🍀 Conexión con IA restaurada")
 else:
-    st.error("⚠️ Falta la configuración de 'GEMINI_API_KEY' en los Secrets de Streamlit.")
+    st.error("⚠️ No se encontró la clave en Secrets.")
     model = None
 # --- DICCIONARIO DE IDIOMAS ---
 idiomas = {
