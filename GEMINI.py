@@ -11,26 +11,24 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. CONFIGURACIÓN DE GEMINI (Versión Estable 2026) ---
+# --- 2. CONFIGURACIÓN DE GEMINI (ELIMINAR ERROR 404) ---
 if "GEMINI_API_KEY" in st.secrets:
-    # Configuramos la versión estable de la API para evitar el error 404
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
     
+    # Usamos 'gemini-pro' a secas, sin números de versión. 
+    # Es el nombre más estable y compatible con la API v1.
     try:
-        # Usamos el nombre del modelo sin el prefijo 'models/' 
-        # para que la librería lo gestione automáticamente
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        
-        # Prueba rápida para verificar que responde
-        model.generate_content("test") 
+        model = genai.GenerativeModel('gemini-pro')
+        # Hacemos una mini prueba silenciosa
+        model.generate_content("ok")
         st.success("🍀 Dream Assistant Conectado")
-    except:
+    except Exception as e:
+        # Si 'gemini-pro' falla, intentamos la versión flash más básica
         try:
-            # Si falla, probamos con la versión Pro
-            model = genai.GenerativeModel('gemini-1.5-pro')
-            st.success("🍀 Dream Assistant Conectado (Modo Pro)")
-        except Exception as e:
-            st.error(f"⚠️ Error de conexión: {e}")
+            model = genai.GenerativeModel('gemini-1.5-flash-8b')
+            st.success("🍀 Dream Assistant Conectado (Modo Lite)")
+        except:
+            st.error(f"⚠️ Error crítico de API: {e}")
             model = None
 else:
     st.error("⚠️ No se encontró la clave en Secrets.")
