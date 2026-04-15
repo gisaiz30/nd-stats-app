@@ -1,3 +1,10 @@
+# --- CONFIGURACIÓN GLOBAL DE GEMINI ---
+# Al ponerlo aquí, 'model' es visible para todo el archivo
+if "GEMINI_API_KEY" in st.secrets:
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    model = genai.GenerativeModel('gemini-1.5-flash')
+else:
+    st.error("⚠️ No se encontró la clave GEMINI_API_KEY en los Secrets.")
 import streamlit as st
 import requests
 from datetime import datetime
@@ -71,11 +78,11 @@ st.title(t["titulo"])
 if st.button(t["boton"]):
     st.cache_data.clear()
     st.rerun()
-def chat_con_ia(consulta_usuario, datos_contexto):
+def chat_con_ia(model):
     # Creamos un resumen simple de los datos para que la IA no se pierda
     instrucciones = f"""
     Eres el 'Dream Assistant' experto en Notre Dame Football. 
-    Usa estos datos de ESPN para responder: {str(datos_contexto)[:4000]}
+    Usa estos datos de ESPN para responder: {str(model)[:4000]}
     
     Reglas:
     1. Si no sabes la respuesta basada en los datos, dilo honestamente.
@@ -85,6 +92,19 @@ def chat_con_ia(consulta_usuario, datos_contexto):
     
     # Combinamos instrucciones + pregunta
     response = model.generate_content(f"{instrucciones}\n\nPregunta del usuario: {consulta_usuario}")
+    return response.text
+def chat_con_ia(consulta_usuario, datos_contexto):
+    # Preparamos los datos para que no sean demasiado largos
+    resumen_datos = str(datos_contexto)[:4000]
+    
+    instrucciones = f"""
+    Eres el analista experto de Notre Dame Football. 
+    Usa estos datos técnicos para responder: {resumen_datos}
+    Si la pregunta no tiene que ver con los datos o con el equipo, responde amablemente que solo sabes de ND Football.
+    """
+    
+    # Aquí llamamos al 'model' que definimos arriba
+    response = model.generate_content(f"{instrucciones}\n\nPregunta: {consulta_usuario}")
     return response.text
 # --- DEFINICIÓN DE LAS 4 PESTAÑAS ---
 tab1, tab2, tab3, tab4 = st.tabs([t["tab1"], t["tab2"], t["tab3"], t["tab4"]])
@@ -161,18 +181,20 @@ st.divider()
 st.header("🤖 Pregunta al Dream Assistant")
 st.write("Haz cualquier pregunta sobre las estadísticas o el roster actual.")
 
-# Creamos el contenedor de la pregunta
-pregunta_usuario = st.chat_input("Ej: ¿Quién lidera en yardas por tierra?")
+st.divider()
+st.header("🤖 Pregunta lo que quieras")
+
+pregunta_usuario = st.chat_input("¿Quién es el máximo anotador?")
 
 if pregunta_usuario:
     with st.chat_message("user"):
         st.write(pregunta_usuario)
     
-    with st.spinner("Consultando inteligencia deportiva..."):
-        # Obtenemos datos de stats para darle contexto a la IA
+    with st.spinner("Analizando..."):
+        # Traemos datos frescos para que la respuesta sea real
         contexto = obtener_datos("https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/87/statistics")
         
-        # Llamamos a la función que creamos arriba
+        # Ejecutamos la función
         respuesta_ai = chat_con_ia(pregunta_usuario, contexto)
         
         with st.chat_message("assistant", avatar="🍀"):
