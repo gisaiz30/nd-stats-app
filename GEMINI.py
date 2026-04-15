@@ -17,7 +17,7 @@ if "AIzaSyAf6hgvJbjs1asVU127PXy3X2z3O2NpuiA" in st.secrets:
     
     # Intentamos con la versión estable más compatible
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash-latest')
+       model = genai.GenerativeModel('gemini-1.5-flash-latest')
     except:
         # Si la anterior falla, usamos Pro como respaldo
         model = genai.GenerativeModel('gemini-pro')
