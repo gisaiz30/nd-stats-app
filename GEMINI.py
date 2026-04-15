@@ -78,24 +78,31 @@ def preguntar_al_assistant(datos_contexto, pregunta_usuario, idioma):
     
     fecha_actual = datetime.now().strftime('%d/%m/%Y')
     
+    # Creamos un contexto mucho más rico que incluye Roster + Stats + News
     contexto_estructurado = f"""
-    SISTEMA DE DATOS EN TIEMPO REAL (RAG)
-    -------------------------------------
-    EQUIPO: Notre Dame Fighting Irish (NCAAF College Football)
-    FECHA DE HOY: {fecha_actual}
-    FUENTE PRIMARIA: ESPN API
-    REPORTES TÉCNICOS: {str(datos_contexto)[:8000]}
-    -------------------------------------
+    SISTEMA DE INTELIGENCIA DEPORTIVA - NOTRE DAME
+    ---------------------------------------------
+    EQUIPO: Notre Dame Fighting Irish
+    FECHA ACTUAL: {fecha_actual}
+    
+    INFORMACIÓN DISPONIBLE:
+    - ROSTER COMPLETO (Nombres, Posiciones, Números)
+    - ESTADÍSTICAS DE EQUIPO Y LÍDERES
+    - NOTICIAS RECIENTES
+    
+    DATOS EN TIEMPO REAL:
+    {str(datos_contexto)[:8500]} 
+    ---------------------------------------------
     """
     
     system_prompt = f"""
-    Eres el 'Dream Assistant' de Notre Dame. 
-    REGLAS:
-    1. Responde SIEMPRE en {idioma}.
-    2. Usa SOLO los datos proporcionados. Estamos en ABRIL DE 2026.
-    3. El equipo analizado es Notre Dame. Los IDs de ESPN (como 87) son de los Irish.
-    4. Si no sabes algo, dilo, no inventes.
-    5. Sé profesional y usa tono de analista deportivo.
+    Eres el analista jefe de los Fighting Irish. 
+    REGLAS ESTRICTAS:
+    1. Responde en {idioma}. Estamos en 2026.
+    2. Usa los datos del ROSTER para identificar a los jugadores por sus nombres.
+    3. Si te preguntan por el 'mejor' o 'líder', analiza las estadísticas proporcionadas.
+    4. NUNCA digas que no tienes información de jugadores si el ROSTER está en los datos.
+    5. Mantén un tono experto, como si estuvieras en ESPN o NBC Sports.
     """
     
     try:
@@ -103,15 +110,13 @@ def preguntar_al_assistant(datos_contexto, pregunta_usuario, idioma):
             model="llama-3.1-8b-instant",
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"{contexto_estructurado}\n\nPREGUNTA: {pregunta_usuario}"}
+                {"role": "user", "content": f"{contexto_estructurado}\n\nPREGUNTA DEL USUARIO: {pregunta_usuario}"}
             ],
-            temperature=0.1,
-            max_tokens=1024
+            temperature=0.2
         )
         return completion.choices[0].message.content
     except Exception as e:
         return f"Error: {e}"
-
 # ==========================================
 # 5. DICCIONARIO DE IDIOMAS
 # ==========================================
